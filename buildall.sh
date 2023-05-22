@@ -131,6 +131,21 @@ cd ..
 docker cp ./configs/* wps:/usr/share/riesgos/json-configurations
 
 
-echo "Building backend ..."
 echo "Building frontend ..."
+git clone https://github.com/riesgos/dlr-riesgos-frontend/ --branch 2.0.5-main
+cd dlr-riesgos-frontend
+touch .env
+echo "backendUrl = http://localhost" >> .env
+echo "backendPort = 8008" >> .env
+echo "maxStoreLifeTimeMinutes = 1440" >> .env
+echo "adminEmails = someone@somewhere.de" >> .env
+echo "sourceEmail = info@test.com" >> .env
+echo "testServiceEveryMinutes = 120" >> .env
+echo "frontendSubPath = /" >> .env
+echo "compareFrontendSubPath = /" >> .env
+sudo docker compose build
+cd ..
+
+
+
 echo "Done!"
