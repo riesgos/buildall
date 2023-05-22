@@ -135,7 +135,7 @@ echo "Building frontend ..."
 git clone https://github.com/riesgos/dlr-riesgos-frontend/ --branch 2.0.5-main
 cd dlr-riesgos-frontend
 cp ../.env .
-sudo docker compose build
+sudo docker compose up -d
 cd ..
 
 
