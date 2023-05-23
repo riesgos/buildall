@@ -2,7 +2,7 @@
 set -o errexit   # abort on nonzero exitstatus
 set -o nounset   # abort on unbound variable
 set -o pipefail  # don't hide errors within pipes
-
+set -x           # for debugging only: print last executed command
 
 
 
@@ -249,6 +249,28 @@ function build_sysrel {
     echo "TODO!!"
 }
 
+function build_frontend {
+    buildIt=false
+    frontendImages=("dlr-riesgos-frontend-frontend" "dlr-riesgos-frontend-compare-frontend" "dlr-riesgos-frontend-monitor" "dlr-riesgos-frontend-backend")
+    for image in "${frontendImages[@]}"
+    do
+        if misses_image "$image"; then
+            buildIt=true
+        fi
+    done
+    if [ "$buildIt" = false ]; then
+        echo "Already exists: frontend"
+    else
+        if [ ! -d "dlr-riesgos-frontend" ]; then
+            git clone https://github.com/riesgos/dlr-riesgos-frontend --branch=compare-frontend # --branch=2.0.6-main <-- once we have a stable tag
+        fi
+        cp .env ./dlr-riesgos-frontend/
+        cd ./dlr-riesgos-frontend
+        docker compose build
+        cd ..
+    fi
+}
+
 function prepare_riesgos_wps {
     # We should put all this in an init container for the startup.
     docker run -p8080:8080 \
@@ -282,6 +304,12 @@ function build_all {
     build_tssim
     build_sysrel
     prepare_riesgos_wps
+    build_frontend
+}
+
+function run_all {
+    # @TODO: include here compose files by GFZ and 52N
+    docker compose -f dlr-riesgos-frontend/docker-compose.yml up -d
 }
 
 function main {
@@ -292,8 +320,9 @@ function main {
     # build_all.
     if [ -z ${1+x} ]; then
         # In case we don't have any subcommand then
-        # we want to build all.
+        # we want to build and run all.
         build_all
+        run_all
     elif [ "$1" == "all" ]; then
         build_all
     elif [ "$1" == "misses_image" ]; then
@@ -323,6 +352,8 @@ function main {
         build_tssim
     elif [ "$1" == "sysrel" ]; then
         build_sysrel
+    elif [ "$1" == "frontend" ]; then
+        build_frontend
     elif [ "$1" == "prepare-riesgos-wps" ]; then
         prepare_riesgos_wps
     else
