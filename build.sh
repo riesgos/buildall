@@ -261,28 +261,6 @@ function build_sysrel {
     echo "TODO!!"
 }
 
-function prepare_riesgos_wps {
-    # We should put all this in an init container for the startup.
-    docker run -p8080:8080 \
-                -v /var/run/docker.sock:/var/run/docker.sock \
-                --name=wps \
-                -d \
-                -e CATALINA_OPTS=-Xmx12g\ -Xms12g \
-                -e RIESGOS_MAX_CACHE_SIZE_MB=8192 \
-                -e RIESGOS_GEOSERVER_USERNAME=admin \
-                -e RIESGOS_GEOSERVER_PASSWORD=geoserver \
-                -e RIESGOS_GEOSERVER_ACCESS_BASE_URL=http://localhost:8080/geoserver \
-                -e RIESGOS_GEOSERVER_SEND_BASE_URL=http://localhost:8080/geoserver \
-                gfzriesgos/riesgos-wps
-    cd gfz-command-line-tool-repository
-    cd assistance/SLD
-    ./add-style-to-geoserver.sh
-    cd ../..
-    ## @TODO: Update configuration to allow CORS. In assistance/geoserver-web.xml, insert <filter>
-    cd ..
-    docker cp ./configs/* wps:/usr/share/riesgos/json-configurations
-}
-
 function build_all {
     build_riesgos_wps
     build_quakeledger
@@ -293,7 +271,6 @@ function build_all {
     build_deus
     build_tssim
     build_sysrel
-    prepare_riesgos_wps
 }
 
 function main {
@@ -335,8 +312,6 @@ function main {
         build_tssim
     elif [ "$1" == "sysrel" ]; then
         build_sysrel
-    elif [ "$1" == "prepare-riesgos-wps" ]; then
-        prepare_riesgos_wps
     else
         echo "no known command found for: $1"
     fi
