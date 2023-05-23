@@ -35,6 +35,7 @@ function clean {
     rm -rf modelprop
     rm -rf deus
     rm -rf tsunami-wps
+    rm -rf dlr-riesgos-frontend
     docker image rm "gfzriesgos/riesgos-wps" || echo "Skip deleting image"
     docker image rm "gfzriesgos/quakeledger" || echo "Skip deleting image"
     docker image rm "gfzriesgos/shakyground-grid-file" || echo "Skip deleting image"
@@ -42,7 +43,10 @@ function clean {
     docker image rm "gfzriesgos/assetmaster" || echo "Skip deleting image"
     docker image rm "gfzriesgos/modelprop" || echo "Skip deleting image"
     docker image rm "gfzriesgos/deus" || echo "Skip deleting image"
-    docker image rm "awi/tssim"  || echo "Skip deleting image"
+    docker image rm "dlr-riesgos-frontend-backend"  || echo "Skip deleting image"
+    docker image rm "dlr-riesgos-frontend-monitor"  || echo "Skip deleting image"
+    docker image rm "dlr-riesgos-frontend-frontend"  || echo "Skip deleting image"
+    docker image rm "dlr-riesgos-frontend-compare-frontend"  || echo "Skip deleting image"
 }
 
 function build_riesgos_wps {
