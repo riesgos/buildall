@@ -1,0 +1,59 @@
+version: "3.3"
+
+services:
+  riesgos-wps:
+    image: gfzriesgos/riesgos-wps:latest
+    restart: always
+    ports:
+      - "8082:8080"
+    env_file:
+      - .env
+    environment:
+      - CATALINA_OPTS=${riesgosWpsCatalinaOpts}
+      - RIESGOS_MAX_CACHE_SIZE_MB=${riesgosWpsMaxCacheSizeMb}
+      - RIESGOS_GEOSERVER_ACCESS_BASE_URL=${riesgosWpsGeoserverAccessBaseUrl}
+      - RIESGOS_GEOSERVER_SEND_BASE_URL=${riesgosWpsGeoserverSendBaseUrl}
+      - RIESGOS_GEOSERVER_USERNAME=${riesgosWpsGeoserverUsername}
+      - RIESGOS_GEOSERVER_PASSWORD=${riesgosWpsGeoserverPassword}
+    volumes:
+      # We need to pass the docker.sock as the WPS itself needs to run
+      # docker commands
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      # We also want a volume for the riesgos-json-config files.
+      # As it is where the processes are defined.
+      - "./configs:/usr/share/riesgos/json-configurations"
+      # We need the hsqldb in order to handle the internal configuration
+      # of the WPS server settings.
+      - "riesgos-wps-hsqldb-dev:/usr/local/tomcat/webapps/wps/WEB-INF/classes/db/data"
+      # And we need to store the server.xml, as we want to overwrite the
+      # timeout settings.
+      #- "riesgos-wps-server-config:/usr/local/tomcat/conf"
+      - "tomcat-folder:/usr/local/tomcat"
+
+  wps-init:
+    image: python:3.10.5-alpine3.15
+    entrypoint: "/entrypoint.sh"
+    depends_on:
+      - riesgos-wps
+    environment:
+      RIESGOS_GEOSERVER_SEND_BASE_URL: ${riesgosWpsGeoserverSendBaseUrl}
+      RIESGOS_GEOSERVER_PASSWORD: ${riesgosWpsGeoserverPassword}
+      RIESGOS_GEOSERVER_USERNAME: ${riesgosWpsGeoserverUsername}
+      RIESGOS_WPS_ACCESS_SERVER_HOST: ${riesgosWpsAccessServerHost}
+      RIESGOS_WPS_ACCESS_SERVER_PORT: ${riesgosWpsAccessServerPort}
+      RIESGOS_WPS_ACCESS_SERVER_PROTOCOL: ${riesgosWpsAccessServerProtocol}
+      RIESGOS_WPS_PASSWORD: ${riesgosWpsPassword}
+      RIESGOS_WPS_SEND_BASE_URL: ${riesgosWpsSendBaseUrl}
+      RIESGOS_WPS_TOMCAT_USERNAME: ${riesgosWpsTomcatUsername}
+      RIESGOS_WPS_TOMCAT_PASSWORD: ${riesgosWpsTomcatPassword}
+    volumes:
+      - "./wps/init/entrypoint.sh:/entrypoint.sh"
+      - "./wps/init/init_wps.py:/init_wps.py"
+      - "tomcat-folder:/tomcat"
+      - "./styles:/styles"
+    env_file:
+      - .env
+
+volumes:
+  riesgos-wps-hsqldb-dev:
+  tomcat-folder:
