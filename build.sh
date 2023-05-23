@@ -254,9 +254,9 @@ function build_sysrel {
                 git clone https://github.com/52North/tum-era-critical-infrastructure-analysis
             fi
             cd tum-era-critical-infrastructure-analysis
-            docker-compose build
+            docker compose build
             cd javaPS
-            docker-compose build 
+            docker compose build 
     else
             echo "Already exists: $image"
     fi
