@@ -246,7 +246,20 @@ function build_tssim {
 }
 
 function build_sysrel {
-    echo "TODO!!"
+    #TODO maybe split docker-compose to build one image each (currently -single and -multi are built together)
+    image="52north/tum-era-critical-infrastructure-analysis-multi"
+    if misses_image $image; then
+            echo "Building $image ..."
+            if [ ! -d "tum-era-critical-infrastructure-analysis" ]; then
+                git clone https://github.com/52North/tum-era-critical-infrastructure-analysis
+            fi
+            cd tum-era-critical-infrastructure-analysis
+            docker-compose build
+            cd javaPS
+            docker-compose build 
+    else
+            echo "Already exists: $image"
+    fi
 }
 
 function prepare_riesgos_wps {
