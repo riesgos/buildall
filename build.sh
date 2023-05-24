@@ -27,6 +27,7 @@ function misses_image {
 function clean {
     # Ensures that we can restart our script from an completely clean state.
     rm -rf config
+    rm -rf styles
     rm -rf gfz-command-line-tool-repository
     rm -rf quakeledger
     rm -rf shakyground-grid-file
@@ -47,10 +48,11 @@ function clean {
 
 function build_riesgos_wps {
     image="gfzriesgos/riesgos-wps"
+    repo="https://github.com/riesgos/gfz-command-line-tool-repository"
     if misses_image $image; then
             echo "Building $image ... "
             if [ ! -d gfz-command-line-tool-repository ]; then
-                git clone https://github.com/riesgos/gfz-command-line-tool-repository
+                git clone "$repo"
             fi
             cd gfz-command-line-tool-repository
             docker build -t $image:latest -f assistance/Dockerfile .
@@ -58,6 +60,16 @@ function build_riesgos_wps {
     else
             echo "Already exists: $image"
     fi
+    if [ ! -d "styles" ]; then
+        mkdir -p "styles"
+    fi
+    if [ ! -f "styles/shakemap-pga.sld" ]; then
+        if [ ! -f "gfz-command-line-tool-repository/assistance/SLD/shakemap-pga.sld" ]; then
+            git clone "$repo"
+        fi
+        cp gfz-command-line-tool-repository/assistance/SLD/* styles
+    fi
+
 }
 
 function build_quakeledger {
@@ -249,28 +261,6 @@ function build_sysrel {
     echo "TODO!!"
 }
 
-function prepare_riesgos_wps {
-    # We should put all this in an init container for the startup.
-    docker run -p8080:8080 \
-                -v /var/run/docker.sock:/var/run/docker.sock \
-                --name=wps \
-                -d \
-                -e CATALINA_OPTS=-Xmx12g\ -Xms12g \
-                -e RIESGOS_MAX_CACHE_SIZE_MB=8192 \
-                -e RIESGOS_GEOSERVER_USERNAME=admin \
-                -e RIESGOS_GEOSERVER_PASSWORD=geoserver \
-                -e RIESGOS_GEOSERVER_ACCESS_BASE_URL=http://localhost:8080/geoserver \
-                -e RIESGOS_GEOSERVER_SEND_BASE_URL=http://localhost:8080/geoserver \
-                gfzriesgos/riesgos-wps
-    cd gfz-command-line-tool-repository
-    cd assistance/SLD
-    ./add-style-to-geoserver.sh
-    cd ../..
-    ## @TODO: Update configuration to allow CORS. In assistance/geoserver-web.xml, insert <filter>
-    cd ..
-    docker cp ./configs/* wps:/usr/share/riesgos/json-configurations
-}
-
 function build_all {
     build_riesgos_wps
     build_quakeledger
@@ -281,7 +271,6 @@ function build_all {
     build_deus
     build_tssim
     build_sysrel
-    prepare_riesgos_wps
 }
 
 function main {
@@ -323,8 +312,6 @@ function main {
         build_tssim
     elif [ "$1" == "sysrel" ]; then
         build_sysrel
-    elif [ "$1" == "prepare-riesgos-wps" ]; then
-        prepare_riesgos_wps
     else
         echo "no known command found for: $1"
     fi
