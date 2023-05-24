@@ -27,6 +27,7 @@ function misses_image {
 function clean {
     # Ensures that we can restart our script from an completely clean state.
     rm -rf config
+    rm -rf styles
     rm -rf gfz-command-line-tool-repository
     rm -rf quakeledger
     rm -rf shakyground-grid-file
@@ -51,10 +52,11 @@ function clean {
 
 function build_riesgos_wps {
     image="gfzriesgos/riesgos-wps"
+    repo="https://github.com/riesgos/gfz-command-line-tool-repository"
     if misses_image $image; then
             echo "Building $image ... "
             if [ ! -d gfz-command-line-tool-repository ]; then
-                git clone https://github.com/riesgos/gfz-command-line-tool-repository
+                git clone "$repo"
             fi
             cd gfz-command-line-tool-repository
             docker build -t $image:latest -f assistance/Dockerfile .
@@ -62,6 +64,16 @@ function build_riesgos_wps {
     else
             echo "Already exists: $image"
     fi
+    if [ ! -d "styles" ]; then
+        mkdir -p "styles"
+    fi
+    if [ ! -f "styles/shakemap-pga.sld" ]; then
+        if [ ! -f "gfz-command-line-tool-repository/assistance/SLD/shakemap-pga.sld" ]; then
+            git clone "$repo"
+        fi
+        cp gfz-command-line-tool-repository/assistance/SLD/* styles
+    fi
+
 }
 
 function build_quakeledger {
