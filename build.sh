@@ -326,9 +326,10 @@ function main {
         # In case we don't have any subcommand then
         # we want to build and run all.
         build_all
-        run_all
     elif [ "$1" == "all" ]; then
         build_all
+    elif [ "$1" == "run" ]; then
+        run_all
     elif [ "$1" == "misses_image" ]; then
         image=$2
         if misses_image "$image"; then
