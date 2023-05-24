@@ -5,6 +5,8 @@ set -o pipefail  # don't hide errors within pipes
 set -x           # for debugging only: print last executed command
 
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 
 function misses_image {
     # Function for boolean checks if an image already exists.
@@ -266,6 +268,13 @@ function build_sysrel {
 }
 
 function build_frontend {
+
+    # Making sure repo was cloned (needed even if images are already built)
+    if [ ! -d "dlr-riesgos-frontend" ]; then
+        git clone https://github.com/riesgos/dlr-riesgos-frontend --branch=compare-frontend # --branch=2.0.6-main <-- once we have a stable tag
+    fi
+
+    # Checking if rebuilding is required
     buildIt=false
     frontendImages=("dlr-riesgos-frontend-frontend" "dlr-riesgos-frontend-compare-frontend" "dlr-riesgos-frontend-monitor" "dlr-riesgos-frontend-backend")
     for image in "${frontendImages[@]}"
@@ -274,39 +283,16 @@ function build_frontend {
             buildIt=true
         fi
     done
+
+    # Build if required
     if [ "$buildIt" = false ]; then
         echo "Already exists: frontend"
     else
-        if [ ! -d "dlr-riesgos-frontend" ]; then
-            git clone https://github.com/riesgos/dlr-riesgos-frontend --branch=compare-frontend # --branch=2.0.6-main <-- once we have a stable tag
-        fi
         cp .env ./dlr-riesgos-frontend/
         cd ./dlr-riesgos-frontend
         docker compose build
-        cd ..
+        cd SCRIPT_DIR
     fi
-}
-
-function prepare_riesgos_wps {
-    # We should put all this in an init container for the startup.
-    docker run -p8080:8080 \
-                -v /var/run/docker.sock:/var/run/docker.sock \
-                --name=wps \
-                -d \
-                -e CATALINA_OPTS=-Xmx12g\ -Xms12g \
-                -e RIESGOS_MAX_CACHE_SIZE_MB=8192 \
-                -e RIESGOS_GEOSERVER_USERNAME=admin \
-                -e RIESGOS_GEOSERVER_PASSWORD=geoserver \
-                -e RIESGOS_GEOSERVER_ACCESS_BASE_URL=http://localhost:8080/geoserver \
-                -e RIESGOS_GEOSERVER_SEND_BASE_URL=http://localhost:8080/geoserver \
-                gfzriesgos/riesgos-wps
-    cd gfz-command-line-tool-repository
-    cd assistance/SLD
-    ./add-style-to-geoserver.sh
-    cd ../..
-    ## @TODO: Update configuration to allow CORS. In assistance/geoserver-web.xml, insert <filter>
-    cd ..
-    docker cp ./configs/* wps:/usr/share/riesgos/json-configurations
 }
 
 function build_all {
@@ -319,13 +305,15 @@ function build_all {
     build_deus
     # build_tssim
     # build_sysrel
-    prepare_riesgos_wps
     build_frontend
 }
 
 function run_all {
-    # @TODO: include here compose files by GFZ and 52N
-    docker compose -f dlr-riesgos-frontend/docker-compose.yml up -d
+    # @TODO: include here compose file by 52N
+    echo "Effective config file:"
+    docker compose -f docker-compose.yml -f dlr-riesgos-frontend/docker-compose.yml config
+    echo "Running containers:"
+    docker compose -f docker-compose.yml -f dlr-riesgos-frontend/docker-compose.yml up -d
 }
 
 function main {
