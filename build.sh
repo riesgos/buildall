@@ -234,11 +234,9 @@ function build_tssim {
             fi
             cd tsunami-wps
             git checkout create-full-docker-build
-            # TODO ??
-            # download data from https://nextcloud.awi.de/s/aNXgXxN9qk5RZRz
-            # download geoserver- from https://nextcloud.awi.de/....TODO....  (check for sensitive data like passwords!)
-            # maybe not required? download `inun` csv files from nextcloud
-            docker image build --tag $image:latest --file ./app/dockerfile .
+            curl https://nextcloud.awi.de/s/aNXgXxN9qk5RZRz/download/riesgos_tsunami_data.tgz -o riesgos_tsunami_data.tgz
+            tar -xzf riesgos_tsunami_data.tgz
+            docker-compose build
             cd ..
     else
             echo "Already exists: $image"
