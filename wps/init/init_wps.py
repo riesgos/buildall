@@ -223,7 +223,7 @@ tomcat = Tomcat(base_path=pathlib.Path("/tomcat"))
 wps = Wps("http://riesgos-wps:8080/wps")
 geoserver = Geoserver(
     base_path=pathlib.Path("/tomcat/webapps/geoserver"),
-    base_url=env.str("RIESGOS_WPS_SEND_BASE_URL", default="http://riesgos-wps:8080/geoserver"),
+    base_url=env.str("RIESGOS_GEOSERVER_SEND_BASE_URL", default="http://riesgos-wps:8080/geoserver"),
 )
 tasks = Tasks()
 
