@@ -22,12 +22,6 @@ services:
       # We also want a volume for the riesgos-json-config files.
       # As it is where the processes are defined.
       - "./configs:/usr/share/riesgos/json-configurations"
-      # We need the hsqldb in order to handle the internal configuration
-      # of the WPS server settings.
-      - "riesgos-wps-hsqldb-dev:/usr/local/tomcat/webapps/wps/WEB-INF/classes/db/data"
-      # And we need to store the server.xml, as we want to overwrite the
-      # timeout settings.
-      #- "riesgos-wps-server-config:/usr/local/tomcat/conf"
       - "tomcat-folder:/usr/local/tomcat"
 
   wps-init:
@@ -55,5 +49,4 @@ services:
       - .env
 
 volumes:
-  riesgos-wps-hsqldb-dev:
   tomcat-folder:
