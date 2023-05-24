@@ -3,6 +3,7 @@
 """Update passwords, set server settings & upload styles."""
 
 import json
+import logging
 import os
 import pathlib
 import re
@@ -22,17 +23,17 @@ class Env:
         return os.environ.get(key, default)
 
 
-class InitWpsData:
+class JsonFile:
     """
     Helper to allow access for variables that we want to store.
 
     Allows reuse in later runs of this script.
     """
 
-    def __init__(self):
+    def __init__(self, filename):
         """Load the data from a file."""
         data = {}
-        self.filename = pathlib.Path("/init_wps.json")
+        self.filename = filename
         if self.filename.exists():
             with self.filename.open() as infile:
                 data = json.load(infile)
@@ -312,7 +313,10 @@ class Geoserver(WaitMixin):
 
 # Some instances of the classes.
 env = Env()
-init_wps_data = InitWpsData()
+# We store it inside of tomcat volume. So those data are as persistent
+# as the volume.
+# If we lose the volume we can use just some default initial values.
+init_wps_data = JsonFile(pathlib.Path("/tomcat/webapps/wps/WEB-INF/classes/init_wps.json"))
 tomcat = Tomcat(base_path=pathlib.Path("/tomcat"))
 wps = Wps("http://riesgos-wps:8080/wps")
 geoserver = Geoserver(
@@ -356,7 +360,7 @@ def step_wps_password():
         wps.change_password(old_password=initial_password, new_password=new_password)
         init_wps_data.put("RIESGOS_WPS_PASSWORD", new_password)
     except Exception:
-        print("Problem on setting the wps password - skipping")
+        logging.error("Problem on setting the wps password - skipping")
 
 
 @tasks.register
