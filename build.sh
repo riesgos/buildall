@@ -305,8 +305,8 @@ function build_all {
     build_assetmaster
     build_modelprop
     build_deus
-    build_tssim
-    build_sysrel
+    # build_tssim
+    # build_sysrel
     prepare_riesgos_wps
     build_frontend
 }
