@@ -5,7 +5,21 @@ set -o pipefail  # don't hide errors within pipes
 set -x           # for debugging only: print last executed command
 
 
+
+
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+if command -v docker compose &> /dev/null
+then 
+    COMPOSE="docker compose"
+elif command -v docker compose &> /dev/null
+then
+    COMPOSE="docker-compose"
+else
+    echo "Can't find docker-compose on this system."
+    exit 1
+fi
+echo "Using compose command $COMPOSE"
 
 
 function misses_image {
@@ -39,6 +53,10 @@ function clean {
     rm -rf deus
     rm -rf tsunami-wps
     rm -rf dlr-riesgos-frontend
+    rm -rf backend
+    rm -rf compare-frontend
+    rm -rf frontend
+    rm -rf monitor
     docker image rm "gfzriesgos/riesgos-wps" || echo "Skip deleting image"
     docker image rm "gfzriesgos/quakeledger" || echo "Skip deleting image"
     docker image rm "gfzriesgos/shakyground-grid-file" || echo "Skip deleting image"
@@ -62,7 +80,7 @@ function build_riesgos_wps {
             fi
             cd gfz-command-line-tool-repository
             docker build -t $image:latest -f assistance/Dockerfile .
-            cd ..
+            cd $SCRIPT_DIR
     else
             echo "Already exists: $image"
     fi
@@ -88,7 +106,7 @@ function build_quakeledger {
             fi
             cd quakeledger
             docker image build --tag $image:latest --file ./metadata/Dockerfile .
-            cd ..
+            cd $SCRIPT_DIR
     else
             echo "Already exists: $image"
     fi
@@ -115,7 +133,7 @@ function build_shakyground_grid {
         fi
         cd shakyground-grid-file
         docker image build --tag $image:latest --file ./Dockerfile .
-        cd ..
+        cd $SCRIPT_DIR
     else
         echo "Already exists: $image"
     fi
@@ -134,7 +152,7 @@ function build_shakyground {
             # so that we use our latest shakyground-grid-file image
             sed -i -e 's/FROM gfzriesgos\/shakyground-grid-file:20211011/FROM gfzriesgos\/skakyground-grid-file:latest/' ./metadata/Dockerfile
             docker image build --tag $image:latest --file ./metadata/Dockerfile .
-            cd ..
+            cd $SCRIPT_DIR
     else
             echo "Already exists: $image"
     fi
@@ -161,7 +179,7 @@ function build_assetmaster {
         cd assetmaster
         docker image build --tag $image --file ./metadata/Dockerfile .
         cp metadata/assetmaster.json ../configs
-        cd ..
+        cd $SCRIPT_DIR
     else
         echo "Already exists: $image"
     fi
@@ -187,7 +205,7 @@ function build_modelprop {
         fi
         cd modelprop
         docker image build --tag $image --file ./metadata/Dockerfile .
-        cd ..
+        cd $SCRIPT_DIR
     else
         echo "Already exists: $image"
     fi
@@ -214,7 +232,7 @@ function build_deus {
         cd deus
         docker image build --tag $image --file ./metadata/Dockerfile .
         cp metadata/deus.json ../configs
-        cd ..
+        cd $SCRIPT_DIR
     else
         echo "Already exists: $image"
     fi
@@ -257,7 +275,7 @@ function build_tssim {
             # download geoserver- from https://nextcloud.awi.de/....TODO....  (check for sensitive data like passwords!)
             # maybe not required? download `inun` csv files from nextcloud
             docker image build --tag $image:latest --file ./app/dockerfile .
-            cd ..
+            cd $SCRIPT_DIR
     else
             echo "Already exists: $image"
     fi
@@ -271,7 +289,24 @@ function build_frontend {
 
     # Making sure repo was cloned (needed even if images are already built)
     if [ ! -d "dlr-riesgos-frontend" ]; then
+
+        # cleaning up potential artifacts of last build
+        rm -rf backend
+        rm -rf compare-frontend
+        rm -rf frontend
+        rm -rf monitor
+        rm -rf docker-compose.dlr.yml
+
+        # downloading and unpacking source code
         git clone https://github.com/riesgos/dlr-riesgos-frontend --branch=compare-frontend # --branch=2.0.6-main <-- once we have a stable tag
+        mv dlr-riesgos-frontend/docker-compose.yml ./docker-compose.dlr.yml
+        mv dlr-riesgos-frontend/backend ./
+        mv dlr-riesgos-frontend/monitor ./
+        mv dlr-riesgos-frontend/frontend ./
+        mv dlr-riesgos-frontend/compare-frontend ./
+
+        # clean up again
+        rm -rf dlr-riesgos-frontend
     fi
 
     # Checking if rebuilding is required
@@ -288,10 +323,8 @@ function build_frontend {
     if [ "$buildIt" = false ]; then
         echo "Already exists: frontend"
     else
-        cp .env ./dlr-riesgos-frontend/
-        cd ./dlr-riesgos-frontend
-        docker compose build
-        cd SCRIPT_DIR
+        $COMPOSE -f docker-compose.dlr.yml build
+        cd $SCRIPT_DIR
     fi
 }
 
@@ -311,9 +344,9 @@ function build_all {
 function run_all {
     # @TODO: include here compose file by 52N
     echo "Effective config file:"
-    docker compose -f docker-compose.yml -f dlr-riesgos-frontend/docker-compose.yml config
+    $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml --env-file .env config
     echo "Running containers:"
-    docker compose -f docker-compose.yml -f dlr-riesgos-frontend/docker-compose.yml up -d
+    $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml --env-file .env up -d
 }
 
 function main {
@@ -359,8 +392,6 @@ function main {
         build_sysrel
     elif [ "$1" == "frontend" ]; then
         build_frontend
-    elif [ "$1" == "prepare-riesgos-wps" ]; then
-        prepare_riesgos_wps
     else
         echo "no known command found for: $1"
     fi
