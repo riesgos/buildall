@@ -236,6 +236,10 @@ function build_tssim {
             git checkout create-full-docker-build
             curl https://nextcloud.awi.de/s/aNXgXxN9qk5RZRz/download/riesgos_tsunami_data.tgz -o riesgos_tsunami_data.tgz
             tar -xzf riesgos_tsunami_data.tgz
+			rm riesgos_tsunami_data.tgz
+            curl https://nextcloud.awi.de/s/rMGYacxWzM9y5PX/download/riesgos_tsunami_inun_data.tgz -o riesgos_tsunami_inun_data.tgz
+            tar -xzf riesgos_tsunami_inun_data.tgz
+            rm riesgos_tsunami_inun_data.tgz
             docker-compose build
             cd ..
     else
