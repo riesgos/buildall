@@ -5,5 +5,12 @@ modelprop
 quakeledger
 shakyground
 tsunami-wps
-gfz-command-line-tool-repository/
-styles/
+dlr-riesgos-frontend
+backend
+compare-frontend
+frontend
+monitor
+docker-compose.dlr.yml
+gfz-command-line-tool-repository
+shakyground-grid-file
+styles

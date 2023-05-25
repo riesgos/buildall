@@ -2,8 +2,24 @@
 set -o errexit   # abort on nonzero exitstatus
 set -o nounset   # abort on unbound variable
 set -o pipefail  # don't hide errors within pipes
+set -x           # for debugging only: print last executed command
 
 
+
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+if command -v docker compose &> /dev/null
+then 
+    COMPOSE="docker compose"
+elif command -v docker compose &> /dev/null
+then
+    COMPOSE="docker-compose"
+else
+    echo "Can't find docker-compose on this system."
+    exit 1
+fi
+echo "Using compose command $COMPOSE"
 
 
 function misses_image {
@@ -36,6 +52,11 @@ function clean {
     rm -rf modelprop
     rm -rf deus
     rm -rf tsunami-wps
+    rm -rf dlr-riesgos-frontend
+    rm -rf backend
+    rm -rf compare-frontend
+    rm -rf frontend
+    rm -rf monitor
     docker image rm "gfzriesgos/riesgos-wps" || echo "Skip deleting image"
     docker image rm "gfzriesgos/quakeledger" || echo "Skip deleting image"
     docker image rm "gfzriesgos/shakyground-grid-file" || echo "Skip deleting image"
@@ -43,7 +64,10 @@ function clean {
     docker image rm "gfzriesgos/assetmaster" || echo "Skip deleting image"
     docker image rm "gfzriesgos/modelprop" || echo "Skip deleting image"
     docker image rm "gfzriesgos/deus" || echo "Skip deleting image"
-    docker image rm "awi/tssim"  || echo "Skip deleting image"
+    docker image rm "dlr-riesgos-frontend-backend"  || echo "Skip deleting image"
+    docker image rm "dlr-riesgos-frontend-monitor"  || echo "Skip deleting image"
+    docker image rm "dlr-riesgos-frontend-frontend"  || echo "Skip deleting image"
+    docker image rm "dlr-riesgos-frontend-compare-frontend"  || echo "Skip deleting image"
 }
 
 function build_riesgos_wps {
@@ -56,7 +80,7 @@ function build_riesgos_wps {
             fi
             cd gfz-command-line-tool-repository
             docker build -t $image:latest -f assistance/Dockerfile .
-            cd ..
+            cd $SCRIPT_DIR
     else
             echo "Already exists: $image"
     fi
@@ -82,7 +106,7 @@ function build_quakeledger {
             fi
             cd quakeledger
             docker image build --tag $image:latest --file ./metadata/Dockerfile .
-            cd ..
+            cd $SCRIPT_DIR
     else
             echo "Already exists: $image"
     fi
@@ -109,7 +133,7 @@ function build_shakyground_grid {
         fi
         cd shakyground-grid-file
         docker image build --tag $image:latest --file ./Dockerfile .
-        cd ..
+        cd $SCRIPT_DIR
     else
         echo "Already exists: $image"
     fi
@@ -128,7 +152,7 @@ function build_shakyground {
             # so that we use our latest shakyground-grid-file image
             sed -i -e 's/FROM gfzriesgos\/shakyground-grid-file:20211011/FROM gfzriesgos\/skakyground-grid-file:latest/' ./metadata/Dockerfile
             docker image build --tag $image:latest --file ./metadata/Dockerfile .
-            cd ..
+            cd $SCRIPT_DIR
     else
             echo "Already exists: $image"
     fi
@@ -155,7 +179,7 @@ function build_assetmaster {
         cd assetmaster
         docker image build --tag $image --file ./metadata/Dockerfile .
         cp metadata/assetmaster.json ../configs
-        cd ..
+        cd $SCRIPT_DIR
     else
         echo "Already exists: $image"
     fi
@@ -181,7 +205,7 @@ function build_modelprop {
         fi
         cd modelprop
         docker image build --tag $image --file ./metadata/Dockerfile .
-        cd ..
+        cd $SCRIPT_DIR
     else
         echo "Already exists: $image"
     fi
@@ -208,7 +232,7 @@ function build_deus {
         cd deus
         docker image build --tag $image --file ./metadata/Dockerfile .
         cp metadata/deus.json ../configs
-        cd ..
+        cd $SCRIPT_DIR
     else
         echo "Already exists: $image"
     fi
@@ -251,7 +275,7 @@ function build_tssim {
             # download geoserver- from https://nextcloud.awi.de/....TODO....  (check for sensitive data like passwords!)
             # maybe not required? download `inun` csv files from nextcloud
             docker image build --tag $image:latest --file ./app/dockerfile .
-            cd ..
+            cd $SCRIPT_DIR
     else
             echo "Already exists: $image"
     fi
@@ -259,6 +283,49 @@ function build_tssim {
 
 function build_sysrel {
     echo "TODO!!"
+}
+
+function build_frontend {
+
+    # Making sure repo was cloned (needed even if images are already built)
+    if [ ! -d "dlr-riesgos-frontend" ]; then
+
+        # cleaning up potential artifacts of last build
+        rm -rf backend
+        rm -rf compare-frontend
+        rm -rf frontend
+        rm -rf monitor
+        rm -rf docker-compose.dlr.yml
+
+        # downloading and unpacking source code
+        git clone https://github.com/riesgos/dlr-riesgos-frontend --branch=compare-frontend # --branch=2.0.6-main <-- once we have a stable tag
+        mv dlr-riesgos-frontend/docker-compose.yml ./docker-compose.dlr.yml
+        mv dlr-riesgos-frontend/backend ./
+        mv dlr-riesgos-frontend/monitor ./
+        mv dlr-riesgos-frontend/frontend ./
+        mv dlr-riesgos-frontend/compare-frontend ./
+
+        # clean up again
+        rm -rf dlr-riesgos-frontend
+    fi
+
+    # Checking if rebuilding is required
+    buildIt=false
+    frontendImages=("dlr-riesgos-frontend-frontend" "dlr-riesgos-frontend-compare-frontend" "dlr-riesgos-frontend-monitor" "dlr-riesgos-frontend-backend")
+    for image in "${frontendImages[@]}"
+    do
+        if misses_image "$image"; then
+            buildIt=true
+        fi
+    done
+
+    # Build if required
+    if [ "$buildIt" = false ]; then
+        echo "Already exists: frontend"
+    else
+        $COMPOSE -f docker-compose.dlr.yml build
+        cd $SCRIPT_DIR
+    fi
 }
 
 function build_all {
@@ -269,8 +336,17 @@ function build_all {
     build_assetmaster
     build_modelprop
     build_deus
-    build_tssim
-    build_sysrel
+    # build_tssim
+    # build_sysrel
+    build_frontend
+}
+
+function run_all {
+    # @TODO: include here compose file by 52N
+    echo "Effective config file:"
+    $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml --env-file .env config
+    echo "Running containers:"
+    $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml --env-file .env up -d
 }
 
 function main {
@@ -281,10 +357,12 @@ function main {
     # build_all.
     if [ -z ${1+x} ]; then
         # In case we don't have any subcommand then
-        # we want to build all.
+        # we want to build and run all.
         build_all
     elif [ "$1" == "all" ]; then
         build_all
+    elif [ "$1" == "run" ]; then
+        run_all
     elif [ "$1" == "misses_image" ]; then
         image=$2
         if misses_image "$image"; then
@@ -312,6 +390,8 @@ function main {
         build_tssim
     elif [ "$1" == "sysrel" ]; then
         build_sysrel
+    elif [ "$1" == "frontend" ]; then
+        build_frontend
     else
         echo "no known command found for: $1"
     fi
