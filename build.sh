@@ -9,10 +9,10 @@ set -x           # for debugging only: print last executed command
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-if command -v docker compose &> /dev/null
-then 
+if docker compose version > /dev/null 2>&1
+then
     COMPOSE="docker compose"
-elif command -v docker compose &> /dev/null
+elif command -v docker-compose > /dev/null 2>&1
 then
     COMPOSE="docker-compose"
 else
