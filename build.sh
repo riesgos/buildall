@@ -64,10 +64,12 @@ function clean {
     docker image rm "gfzriesgos/assetmaster" || echo "Skip deleting image"
     docker image rm "gfzriesgos/modelprop" || echo "Skip deleting image"
     docker image rm "gfzriesgos/deus" || echo "Skip deleting image"
-    docker image rm "dlr-riesgos-frontend-backend"  || echo "Skip deleting image"
-    docker image rm "dlr-riesgos-frontend-monitor"  || echo "Skip deleting image"
-    docker image rm "dlr-riesgos-frontend-frontend"  || echo "Skip deleting image"
-    docker image rm "dlr-riesgos-frontend-compare-frontend"  || echo "Skip deleting image"
+    docker image rm "buildall-backend"  || echo "Skip deleting image"
+    docker image rm "buildall-monitor"  || echo "Skip deleting image"
+    docker image rm "buildall-frontend"  || echo "Skip deleting image"
+    docker image rm "buildall-compare-frontend"  || echo "Skip deleting image"
+    docker volume rm buildall_logs
+    docker volume rm buildall_store
 }
 
 function build_riesgos_wps {
@@ -346,7 +348,8 @@ function run_all {
     echo "Effective config file:"
     $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml --env-file .env config
     echo "Running containers:"
-    $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml --env-file .env up -d
+    # At least initially: not starting monitor - causes a lot of load at once.
+    $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml --env-file .env up -d wps-init riesgos-wps reverse_proxy backend frontend compare-frontend
 }
 
 function main {
