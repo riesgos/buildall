@@ -37,7 +37,6 @@ services:
     depends_on:
       - riesgos-wps
     environment:
-      RIESGOS_GEOSERVER_SEND_BASE_URL: ${riesgosWpsGeoserverSendBaseUrl}
       RIESGOS_GEOSERVER_PASSWORD: ${riesgosWpsGeoserverPassword}
       RIESGOS_GEOSERVER_USERNAME: ${riesgosWpsGeoserverUsername}
       RIESGOS_WPS_ACCESS_SERVER_HOST: ${riesgosWpsAccessServerHost}

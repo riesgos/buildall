@@ -7,11 +7,11 @@ import logging
 import os
 import pathlib
 import re
+import shutil
 import time
 from xml.etree import ElementTree
 
 import requests
-from requests.auth import HTTPBasicAuth
 
 
 # Helper classes and functions
@@ -123,8 +123,13 @@ class Tomcat:
         os.system(f"touch {filepath}")
 
 
-class WaitMixin:
-    """Mixin to be able to wait for a server with an base url to be ready."""
+class Wps:
+    """Helper class to interact with the WPS server."""
+
+    def __init__(self, base_url):
+        """Init the object with the base url."""
+        self.base_url = base_url
+        self.session = requests.Session()
 
     def wait_until_ready(self):
         """Wait until we get success response codes from the servers base url."""
@@ -136,15 +141,6 @@ class WaitMixin:
                 ready = True
             except Exception:
                 time.sleep(2)
-
-
-class Wps(WaitMixin):
-    """Helper class to interact with the WPS server."""
-
-    def __init__(self, base_url):
-        """Init the object with the base url."""
-        self.base_url = base_url
-        self.session = requests.Session()
 
     def _get_csrf(self, resp):
         """Extract the csrf token from the response."""
@@ -236,13 +232,12 @@ class Wps(WaitMixin):
         resp_post.raise_for_status()
 
 
-class Geoserver(WaitMixin):
+class Geoserver:
     """Helper class to interact with the geoserver."""
 
-    def __init__(self, base_path, base_url):
-        """Init the object with the base_path on the filesystem and the base url for web access."""
+    def __init__(self, base_path):
+        """Init the object with the base_path on the filesystem."""
         self.base_path = base_path
-        self.base_url = base_url
 
     def set_username_and_password(self, username, password):
         """Update the username & password."""
@@ -296,19 +291,46 @@ class Geoserver(WaitMixin):
 
         et.write(filepath)
 
-    def wait_until_credentials_are_recognized(self, username, password):
-        """Run a basic request with authentification until the auth worked."""
-        ready = False
-        while not ready:
-            try:
-                resp = requests.get(
-                    f"{self.base_url}/rest/workspaces",
-                    auth=HTTPBasicAuth(username, password),
-                )
-                resp.raise_for_status()
-                ready = True
-            except Exception:
-                time.sleep(2)
+
+class GeoserverStyle:
+    """Helper class to write geoserver styles to filesystem."""
+
+    def __init__(self, id_, name, format_, version, filename):
+        """Init the object."""
+        self.id_ = id_
+        self.name = name
+        self.format_ = format_
+        self.version = version
+        self.filename = filename
+
+    def write(self, xml_target):
+        """Write the style to a file as xml."""
+        xml_style = ElementTree.Element("style")
+
+        xml_id = ElementTree.Element("id")
+        xml_id.text = self.id_
+        xml_style.append(xml_id)
+
+        xml_name = ElementTree.Element("name")
+        xml_name.text = self.name
+        xml_style.append(xml_name)
+
+        xml_format = ElementTree.Element("format")
+        xml_format.text = self.format_
+        xml_style.append(xml_format)
+
+        xml_language_version = ElementTree.Element("languageVersion")
+        xml_version = ElementTree.Element("version")
+        xml_version.text = self.version
+        xml_language_version.append(xml_version)
+        xml_style.append(xml_language_version)
+
+        xml_filename = ElementTree.Element("filename")
+        xml_filename.text = self.filename
+        xml_style.append(xml_filename)
+
+        et = ElementTree.ElementTree(xml_style)
+        et.write(xml_target, xml_declaration=True)
 
 
 # Some instances of the classes.
@@ -316,14 +338,13 @@ env = Env()
 # We store it inside of tomcat volume. So those data are as persistent
 # as the volume.
 # If we lose the volume we can use just some default initial values.
-init_wps_data = JsonFile(pathlib.Path("/tomcat/webapps/wps/WEB-INF/classes/init_wps.json"))
+init_wps_data = JsonFile(
+    pathlib.Path("/tomcat/webapps/wps/WEB-INF/classes/init_wps.json")
+)
 tomcat = Tomcat(base_path=pathlib.Path("/tomcat"))
 wps = Wps("http://riesgos-wps:8080/wps")
 geoserver = Geoserver(
     base_path=pathlib.Path("/tomcat/webapps/geoserver"),
-    base_url=env.str(
-        "RIESGOS_GEOSERVER_SEND_BASE_URL", default="http://riesgos-wps:8080/geoserver"
-    ),
 )
 tasks = Tasks()
 
@@ -390,42 +411,41 @@ def step_geoserver_password():
 
 
 @tasks.register
+def step_geoserver_upload_styles():
+    """Upload the styles to the geoserver."""
+
+    def to_style_name(base_name):
+        """Return a stylename with common naming conventions."""
+        without_file_extension = base_name.replace(".sld", "")
+        without_underscores = without_file_extension.replace("_", "-")
+        return without_underscores
+
+    styles = pathlib.Path("/styles").glob("*.sld")
+    for sld_file in styles:
+        style_name = to_style_name(sld_file.name)
+        # Copy the sld file to the geoserver folder
+        sld_target = geoserver.base_path / "data" / "styles" / f"{style_name}.sld"
+        xml_target = geoserver.base_path / "data" / "styles" / f"{style_name}.xml"
+        shutil.copy(sld_file, sld_target)
+        # And I need to create an according xml file.
+        # We need to extract the version from the sld file.
+        version = ElementTree.parse(sld_file).getroot().attrib.get("version", "1.0.0")
+        GeoserverStyle(
+            id_=style_name,
+            name=style_name,
+            format_="sld",
+            version=version,
+            filename=f"{style_name}.sld",
+        ).write(xml_target)
+
+
+@tasks.register
 def step_tomcat_reload_settings():
     """Reload the tomcat apps."""
     apps = ["geoserver", "wps"]
 
     for app in apps:
         tomcat.reload_settings(app)
-
-
-@tasks.register
-def step_geoserver_upload_styles():
-    """Upload the styles to the geoserver."""
-    username = env.str("RIESGOS_GEOSERVER_USERNAME", default="admin")
-    password = env.str("RIESGOS_GEOSERVER_PASSWORD", default="geoserver")
-
-    scriptname = "/styles/add-style-to-geoserver.sh"
-    content = open(scriptname).read()
-    content_updated = (
-        content.replace("__GEOSERVER_URL__", geoserver.base_url)
-        .replace("__GEOSERVER_PASSWORD__", password)
-        .replace("admin", username)
-    )
-
-    updated_scriptname = "/styles/add-style-to-geoserver-updated.sh"
-    with open(updated_scriptname, "w") as outfile:
-        outfile.write(content_updated)
-
-    os.system(f"chmod +x {updated_scriptname}")
-    geoserver.wait_until_ready()
-    # it is still the problem that the geoserver seem to need some
-    # time uniil it realized that there is a changed password.
-    # (Even after the reload by the tomcat.)
-    # So we wait until our geoserver responds with our current credentials.
-    geoserver.wait_until_credentials_are_recognized(username, password)
-
-    os.system(updated_scriptname)
-    os.unlink(updated_scriptname)
 
 
 @tasks.register
