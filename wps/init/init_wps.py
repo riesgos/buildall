@@ -190,7 +190,7 @@ class Wps(WaitMixin):
         )
         resp_change.raise_for_status()
 
-    def post_server(self, protocol, hostname, hostport):
+    def post_server(self, protocol, hostname, hostport, path):
         """
         Update the server data of the wps (host, port, etc).
 
@@ -205,7 +205,9 @@ class Wps(WaitMixin):
             "hostname": hostname,
             "hostport": hostport,
             "computation_timeout": "5",
-            "weppapp_path": "wps",
+            # The form accepts it as weppapp_path. Maybe webapp_path
+            # was used by some different application.
+            "weppapp_path": path,
             "repo_reload_interval": "0.0",
             "data_inputs_in_response": "false",
             "cache_capabilites": "false",
@@ -316,7 +318,9 @@ env = Env()
 # We store it inside of tomcat volume. So those data are as persistent
 # as the volume.
 # If we lose the volume we can use just some default initial values.
-init_wps_data = JsonFile(pathlib.Path("/tomcat/webapps/wps/WEB-INF/classes/init_wps.json"))
+init_wps_data = JsonFile(
+    pathlib.Path("/tomcat/webapps/wps/WEB-INF/classes/init_wps.json")
+)
 tomcat = Tomcat(base_path=pathlib.Path("/tomcat"))
 wps = Wps("http://riesgos-wps:8080/wps")
 geoserver = Geoserver(
@@ -372,12 +376,13 @@ def step_wps_server_settings():
     protocol = env.str("RIESGOS_WPS_ACCESS_SERVER_PROTOCOL", default="http")
     hostname = env.str("RIESGOS_WPS_ACCESS_SERVER_HOST", default="localhost")
     hostport = env.str("RIESGOS_WPS_ACCESS_SERVER_PORT", default="8082")
+    path = env.str("RIESGOS_WPS_ACCESS_SERVER_PATH", default="wps")
 
     wps.wait_until_ready()
 
     wps.login(username=initial_username, password=password)
 
-    wps.post_server(protocol=protocol, hostname=hostname, hostport=hostport)
+    wps.post_server(protocol=protocol, hostname=hostname, hostport=hostport, path=path)
 
 
 @tasks.register
