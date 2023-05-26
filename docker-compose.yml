@@ -43,6 +43,7 @@ services:
       RIESGOS_WPS_ACCESS_SERVER_HOST: ${riesgosWpsAccessServerHost}
       RIESGOS_WPS_ACCESS_SERVER_PORT: ${riesgosWpsAccessServerPort}
       RIESGOS_WPS_ACCESS_SERVER_PROTOCOL: ${riesgosWpsAccessServerProtocol}
+      RIESGOS_WPS_ACCESS_SERVER_PATH: ${riesgosWpsAccessServerPath}
       RIESGOS_WPS_PASSWORD: ${riesgosWpsPassword}
       RIESGOS_WPS_SEND_BASE_URL: ${riesgosWpsSendBaseUrl}
       RIESGOS_WPS_TOMCAT_USERNAME: ${riesgosWpsTomcatUsername}
