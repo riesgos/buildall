@@ -264,27 +264,19 @@ function build_deus {
 }
 
 function build_tssim {
-    image="awi/tssim"
-    if misses_image $image; then
-            echo "Building $image ..."
-            if [ ! -d "tsunami-wps" ]; then
-                git clone https://gitlab.awi.de/tsunawi/web-services/tsunami-wps
-            fi
-            cd tsunami-wps
-            git checkout create-full-docker-build
-            # TODO ??
-            # download data from https://nextcloud.awi.de/s/aNXgXxN9qk5RZRz
-            # download geoserver- from https://nextcloud.awi.de/....TODO....  (check for sensitive data like passwords!)
-            # maybe not required? download `inun` csv files from nextcloud
-            docker image build --tag $image:latest --file ./app/dockerfile .
-            cd $SCRIPT_DIR
-    else
-            echo "Already exists: $image"
-    fi
+    echo @TODO
 }
 
 function build_sysrel {
-    echo "TODO!!"
+    image="awi/tssim"
+    if misses_image $image; then
+        git clone https://github.com/52North/tum-era-critical-infrastructure-analysis
+        cd tum-era-critical-infrastructure-analysis
+        $COMPOSE -f docker-compose.yml build
+        cp ./docker-compose.yml ../docker.compose.sysrel.52n.yml
+    else
+        echo "Already exists: $image"
+    fi
 }
 
 function build_frontend {
@@ -313,7 +305,7 @@ function build_frontend {
 
     # Checking if rebuilding is required
     buildIt=false
-    frontendImages=("dlr-riesgos-frontend-frontend" "dlr-riesgos-frontend-compare-frontend" "dlr-riesgos-frontend-monitor" "dlr-riesgos-frontend-backend")
+    frontendImages=("buildall-frontend" "buildall-compare-frontend" "buildall-monitor" "buildall-backend")
     for image in "${frontendImages[@]}"
     do
         if misses_image "$image"; then
@@ -346,10 +338,10 @@ function build_all {
 function run_all {
     # @TODO: include here compose file by 52N
     echo "Effective config file:"
-    $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml --env-file .env config
+    $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml -f docker-compose.sysrel.52n.yml --env-file .env config
     echo "Running containers:"
     # At least initially: not starting monitor - causes a lot of load at once.
-    $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml --env-file .env up -d wps-init riesgos-wps reverse_proxy backend frontend compare-frontend
+    $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml -f docker-compose.sysrel.52n.yml --env-file .env up -d wps-init riesgos-wps reverse_proxy backend frontend compare-frontend
 }
 
 function main {
