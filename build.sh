@@ -278,8 +278,8 @@ function build_tssim {
             curl https://nextcloud.awi.de/s/rMGYacxWzM9y5PX/download/riesgos_tsunami_inun_data.tgz -o riesgos_tsunami_inun_data.tgz
             tar -xzf riesgos_tsunami_inun_data.tgz
             rm riesgos_tsunami_inun_data.tgz
-            docker-compose build
-            cd ..
+            $COMPOSE build
+            cd $SCRIPT_DIR
     else
             echo "Already exists: $image"
     fi
