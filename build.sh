@@ -264,7 +264,25 @@ function build_deus {
 }
 
 function build_tssim {
-    echo "todo: ts-sim"
+    image="awi/tssim"
+    if misses_image $image; then
+            echo "Building $image ..."
+            if [ ! -d "tsunami-wps" ]; then
+                git clone https://gitlab.awi.de/tsunawi/web-services/tsunami-wps
+            fi
+            cd tsunami-wps
+            git checkout create-full-docker-build
+            curl https://nextcloud.awi.de/s/aNXgXxN9qk5RZRz/download/riesgos_tsunami_data.tgz -o riesgos_tsunami_data.tgz
+            tar -xzf riesgos_tsunami_data.tgz
+			rm riesgos_tsunami_data.tgz
+            curl https://nextcloud.awi.de/s/rMGYacxWzM9y5PX/download/riesgos_tsunami_inun_data.tgz -o riesgos_tsunami_inun_data.tgz
+            tar -xzf riesgos_tsunami_inun_data.tgz
+            rm riesgos_tsunami_inun_data.tgz
+            docker-compose build
+            cd ..
+    else
+            echo "Already exists: $image"
+    fi
 }
 
 function build_sysrel {
