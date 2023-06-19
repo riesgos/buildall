@@ -271,7 +271,7 @@ function build_tssim {
                 git clone https://gitlab.awi.de/tsunawi/web-services/tsunami-wps
             fi
             cd tsunami-wps
-            git checkout create-full-docker-build
+            git checkout full-docker-build-config
             curl https://nextcloud.awi.de/s/aNXgXxN9qk5RZRz/download/riesgos_tsunami_data.tgz -o riesgos_tsunami_data.tgz
             tar -xzf riesgos_tsunami_data.tgz
 			rm riesgos_tsunami_data.tgz
