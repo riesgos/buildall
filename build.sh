@@ -53,10 +53,7 @@ function clean {
     rm -rf deus
     rm -rf tsunami-wps
     rm -rf dlr-riesgos-frontend
-    rm -rf backend
-    rm -rf compare-frontend
-    rm -rf frontend
-    rm -rf monitor
+    rm -rf tum-era-critical-infrastructure-analysis
     docker image rm "gfzriesgos/riesgos-wps" || echo "Skip deleting image"
     docker image rm "gfzriesgos/quakeledger" || echo "Skip deleting image"
     docker image rm "gfzriesgos/shakyground-grid-file" || echo "Skip deleting image"
@@ -64,10 +61,10 @@ function clean {
     docker image rm "gfzriesgos/assetmaster" || echo "Skip deleting image"
     docker image rm "gfzriesgos/modelprop" || echo "Skip deleting image"
     docker image rm "gfzriesgos/deus" || echo "Skip deleting image"
-    docker image rm "buildall-backend"  || echo "Skip deleting image"
-    docker image rm "buildall-monitor"  || echo "Skip deleting image"
-    docker image rm "buildall-frontend"  || echo "Skip deleting image"
-    docker image rm "buildall-compare-frontend"  || echo "Skip deleting image"
+    docker image rm "dlrriesgos/backend"  || echo "Skip deleting image"
+    docker image rm "dlrriesgos/monitor"  || echo "Skip deleting image"
+    docker image rm "dlrriesgos/frontend"  || echo "Skip deleting image"
+    docker image rm "dlrriesgos/compare-frontend"  || echo "Skip deleting image"
     docker volume rm buildall_logs
     docker volume rm buildall_store
 }
@@ -303,32 +300,9 @@ function build_sysrel {
 }
 
 function build_frontend {
-
-    # Making sure repo was cloned (needed even if images are already built)
-    if [ ! -d "dlr-riesgos-frontend" ]; then
-
-        # cleaning up potential artifacts of last build
-        rm -rf backend
-        rm -rf compare-frontend
-        rm -rf frontend
-        rm -rf monitor
-        rm -rf docker-compose.dlr.yml
-
-        # downloading and unpacking source code
-        git clone https://github.com/riesgos/dlr-riesgos-frontend --branch=compare-frontend # --branch=2.0.6-main <-- once we have a stable tag
-        mv dlr-riesgos-frontend/docker-compose.yml ./docker-compose.dlr.yml
-        mv dlr-riesgos-frontend/backend ./
-        mv dlr-riesgos-frontend/monitor ./
-        mv dlr-riesgos-frontend/frontend ./
-        mv dlr-riesgos-frontend/compare-frontend ./
-
-        # clean up again
-        rm -rf dlr-riesgos-frontend
-    fi
-
     # Checking if rebuilding is required
     buildIt=false
-    frontendImages=("buildall-frontend" "buildall-compare-frontend" "buildall-monitor" "buildall-backend")
+    frontendImages=("dlrriesgos/frontend" "dlrriesgos/compare-frontend" "dlrriesgos/backend")
     for image in "${frontendImages[@]}"
     do
         if misses_image "$image"; then
@@ -340,7 +314,11 @@ function build_frontend {
     if [ "$buildIt" = false ]; then
         echo "Already exists: frontend"
     else
-        $COMPOSE -f docker-compose.dlr.yml build
+        rm -rf dlr-riesgos-frontend
+        git clone https://github.com/riesgos/dlr-riesgos-frontend --branch=compare-frontend # --branch=2.0.6-main <-- once we have a stable tag
+        cd dlr-riesgos-frontend
+        cp ../.env .
+        $COMPOSE build
         cd $SCRIPT_DIR
     fi
 }
@@ -359,12 +337,7 @@ function build_all {
 }
 
 function run_all {
-    # @TODO: include here compose file by 52N
-    echo "Effective config file:"
-    $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml --env-file .env config
-    echo "Running containers:"
-    # At least initially: not starting monitor - causes a lot of load at once.
-    $COMPOSE -f docker-compose.yml -f docker-compose.dlr.yml --env-file .env up -d wps-init riesgos-wps reverse_proxy backend frontend compare-frontend
+    $COMPOSE --env-file .env up -d
 }
 
 function main {
