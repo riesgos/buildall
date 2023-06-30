@@ -33,10 +33,8 @@ services:
 
   ades:
     image: 52north/ades:latest
-    ports:
-      - 8082:8080
     environment:
-      SERVICE_SERVICE_URL: ${riesgosWpsAccessServerProtocol}://${riesgosWpsAccessServerHost}:8082/service
+      SERVICE_SERVICE_URL: ${SysrelUrl}
       SERVICE_PROVIDER_INDIVIDUAL_NAME: Jane Doe
       SERVICE_PROVIDER_POSITION_NAME: First Line Supporter
       DOCKER_ENVPREFIX: TEST_

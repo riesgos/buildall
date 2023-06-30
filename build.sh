@@ -2,7 +2,7 @@
 set -o errexit   # abort on nonzero exitstatus
 set -o nounset   # abort on unbound variable
 set -o pipefail  # don't hide errors within pipes
-set -x           # for debugging only: print last executed command
+# set -x           # for debugging only: print last executed command
 
 
 
@@ -284,9 +284,19 @@ function build_tssim {
 
 function build_sysrel {
     #TODO maybe split docker-compose to build one image each (currently -single and -multi are built together)
-    image="52north/tum-era-critical-infrastructure-analysis-multi"
-    if misses_image $image; then
-            echo "Building $image ..."
+    buildIt=false
+    sysrelImages=("52north/tum-era-critical-infrastructure-analysis-multi" "52north/tum-era-critical-infrastructure-analysis-single" "52north/ades")
+    for image in "${sysrelImages[@]}"
+    do
+        if misses_image "$image"; then
+            buildIt=true
+        fi
+    done
+
+    if [ "$buildIt" = false ]; then
+        echo "Already exists: sysrel"
+    else
+            echo "Building sysrel ..."
             if [ ! -d "tum-era-critical-infrastructure-analysis" ]; then
                 git clone https://github.com/52North/tum-era-critical-infrastructure-analysis
             fi
@@ -294,8 +304,6 @@ function build_sysrel {
             docker compose build
             cd javaPS
             docker compose build 
-    else
-            echo "Already exists: $image"
     fi
 }
 
@@ -314,8 +322,9 @@ function build_frontend {
     if [ "$buildIt" = false ]; then
         echo "Already exists: frontend"
     else
-        rm -rf dlr-riesgos-frontend
-        git clone https://github.com/riesgos/dlr-riesgos-frontend --branch=compare-frontend # --branch=2.0.6-main <-- once we have a stable tag
+        if [ ! -d "dlr-riesgos-frontend" ]; then
+            git clone https://github.com/riesgos/dlr-riesgos-frontend --branch=compare-frontend # --branch=2.0.6-main <-- once we have a stable tag
+        fi
         cd dlr-riesgos-frontend
         cp ../.env .
         $COMPOSE build
