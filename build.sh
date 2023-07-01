@@ -261,7 +261,7 @@ function build_deus {
 }
 
 function build_tssim {
-    image="awi/tssim"
+    image="tsunami-wps-app01"
     if misses_image $image; then
             echo "Building $image ..."
             if [ ! -d "tsunami-wps" ]; then
@@ -340,7 +340,7 @@ function build_all {
     build_assetmaster
     build_modelprop
     build_deus
-    # build_tssim
+    build_tssim
     build_sysrel
     build_frontend
 }

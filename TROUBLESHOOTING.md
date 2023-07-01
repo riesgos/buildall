@@ -1,7 +1,8 @@
 # General
 
-- sudo docker compose down -v
-- browser: new tab, clear cookies, clear memory (especially cache headers)
+- sudo docker compose down -v (also cleans volumes)
+- Browser: new tab, clear cookies, clear memory (especially cache headers).
+- Browser: In dev-tab, make sure that HTTP-cache is deactivated.
 
 
 
@@ -24,11 +25,11 @@ TypeError: fetch failed
 ```
 
 ## Reason:
-Commonly occurs after containers have been (re-)started and riesgos-wps-init is not yet completed
+Commonly occurs after containers have been (re-)started and riesgos-wps-init is not yet completed.
 
 ## Solution:
 Wait a few seconds and try again.
-
+Potentially restart backend, riesgos-wps, and wps-init.
 
 
 
@@ -85,3 +86,6 @@ Element [html] could not be unmarshalled as is not known in this context and the
 ## Solution: 
 Restart buildall-riesgos-wps-1
 Potentially also restart buildall-wps-init-1
+
+
+# 
