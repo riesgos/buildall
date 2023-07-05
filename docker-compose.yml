@@ -103,7 +103,7 @@ services:
       backendPort: ${backendPort}
 
   tsunawps:
-    restart: always        
+    restart: always
     shm_size: '1000000000'
     image: tsunami-wps-app01
     tty: true
@@ -120,23 +120,23 @@ services:
         - '8007:80'
             
   tsunageoserver:
-    image: kartoza/geoserver 
+    image: kartoza/geoserver
     ports:
-      - 8087:8080  
+      - 8087:8080
     deploy:
         resources:
             limits:
               cpus: "0.50"
               memory: 2048M
     volumes:
+      - ./tsunami-wps/data:/var/www/riesgos/data
+      - ./tsunami-wps/users.xml:/var/www/riesgos/data/security/usergroup/default/users.xml
+      - ./tsunami-wps/logging.xml:/var/www/riesgos/data/logging.xml
       - ./tsunami-wps/web.xml:/usr/local/tomcat/webapps/geoserver/WEB-INF/web.xml
-      - ./tsunami-wps/riesgos:/var/www/riesgos
     environment:
       GEOSERVER_DATA_DIR: '/var/www/riesgos/data'
       GEOWEBCACHE_CACHE_DIR: '/var/www/riesgos/data/gwc'
       RECREATE_DATADIR: false
-      GEOSERVER_ADMIN_PASSWORD: geoserver
-      GEOSERVER_ADMIN_USER: admin
 
 
 
