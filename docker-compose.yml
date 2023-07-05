@@ -123,11 +123,6 @@ services:
     image: kartoza/geoserver
     ports:
       - 8087:8080
-    deploy:
-        resources:
-            limits:
-              cpus: "0.50"
-              memory: 2048M
     volumes:
       - ./tsunami-wps/data:/var/www/riesgos/data
       - ./tsunami-wps/users.xml:/var/www/riesgos/data/security/usergroup/default/users.xml
