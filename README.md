@@ -26,6 +26,8 @@ chmod +x build.sh
 ./build.sh run
 ```
 
+You can then open the browser on [http://localhost:8000](http://localhost:8000).
+
 ## Troubleshooting
 
 See [here](./TROUBLESHOOTING.md).
