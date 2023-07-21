@@ -65,7 +65,10 @@ function clean {
     docker image rm "dlrriesgos/monitor"  || echo "Skip deleting image"
     docker image rm "dlrriesgos/frontend"  || echo "Skip deleting image"
     docker image rm "dlrriesgos/compare-frontend"  || echo "Skip deleting image"
-    docker image rm "tsunami-wps-app01"
+    docker image rm "52north/tum-era-critical-infrastructure-analysis-multi"   || echo "Skip deleting image"
+    docker image rm "52north/tum-era-critical-infrastructure-analysis-single"   || echo "Skip deleting image"
+    docker image rm "52north/ades"   || echo "Skip deleting image"
+    docker image rm "tsunami-wps-app01"   || echo "Skip deleting image"
     docker volume rm buildall_logs
     docker volume rm buildall_store
 }
