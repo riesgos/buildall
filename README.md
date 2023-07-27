@@ -32,6 +32,24 @@ You can then open the browser on [http://localhost:8000](http://localhost:8000).
 
 See [here](./TROUBLESHOOTING.md).
 
+## Maintainance
+We've found that some services require some degree of maintainance, depending on how they are deployed. This section collects maintainance tasks that you *might* want to include in your production-environment.
+
+### Riesgos-WPS
+Running the WPS now for a longer time, we occasionally ran into hard disk limitations due to all the files that the WPS created. This will depend on how much disk-space you make available to it and how often you re-create the container, of course.
+
+You might want to add cronjobs to do some cleanup-work. The following jobs worked for us in production:
+```bash
+rm -rf /usr/local/tomcat/webapps/geoserver/data/workspaces/riesgos/*.zip /usr/local/tomcat/webapps/geoserver/data/workspaces/riesgos/*.tif /usr/local/tomcat/webapps/geoserver/data/data/riesgos/*.zip /usr/local/tomcat/webapps/geoserver/data/data/riesgos/*.tif
+```
+(removes the tiffs & zip files from the geoserver).
+
+```bash
+find /usr/local/tomcat/temp -type f -mtime +3 -execdir rm -- {} \;
+```
+(removes temp files from the tomcat).
+
+
 ## See also
 
 - https://docs.docker.com/compose/compose-file/compose-file-v2/
