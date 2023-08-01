@@ -73,6 +73,15 @@ function clean {
     docker volume rm buildall_store
 }
 
+function get_busybox {
+    image="busybox:1.35.0"
+    if misses_image $image; then
+        docker pull $image
+    else
+        echo "Already exists: $image"
+    fi
+}
+
 function build_riesgos_wps {
     image="gfzriesgos/riesgos-wps"
     repo="https://github.com/riesgos/gfz-command-line-tool-repository"
@@ -335,6 +344,7 @@ function build_frontend {
 }
 
 function build_all {
+    get_busybox
     build_riesgos_wps
     build_quakeledger
     build_shakyground_grid
