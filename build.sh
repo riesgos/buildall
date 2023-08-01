@@ -137,7 +137,7 @@ function build_quakeledger {
 function build_shakyground_grid {
     # We reuse this new image later as the base image for shakyground.
     # So that all the grid files are already there.
-    image="gfzriesgos/skakyground-grid-file"
+    image="gfzriesgos/shakyground-grid-file"
     repo="https://github.com/gfzriesgos/shakyground-grid-file"
     if misses_image $image; then
         if [ ! -d shakyground-grid-file ]; then
@@ -162,7 +162,7 @@ function build_shakyground {
             cd shakyground
             # Replace the FROM entry in the dockerfile
             # so that we use our latest shakyground-grid-file image
-            sed -i -e 's/FROM gfzriesgos\/shakyground-grid-file:20211011/FROM gfzriesgos\/skakyground-grid-file:latest/' ./metadata/Dockerfile
+            sed -i -e 's/FROM gfzriesgos\/shakyground-grid-file:20211011/FROM gfzriesgos\/shakyground-grid-file:latest/' ./metadata/Dockerfile
             docker image build --tag $image:latest --file ./metadata/Dockerfile .
             cd $SCRIPT_DIR
     else
