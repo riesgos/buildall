@@ -334,7 +334,7 @@ function build_frontend {
         echo "Already exists: frontend"
     else
         if [ ! -d "dlr-riesgos-frontend" ]; then
-            git clone https://github.com/riesgos/dlr-riesgos-frontend --branch=compare-frontend # --branch=2.0.6-main <-- once we have a stable tag
+            git clone https://github.com/riesgos/dlr-riesgos-frontend # --branch=2.0.6-main <-- once we have a stable tag
         fi
         cd dlr-riesgos-frontend
         cp ../.env .
