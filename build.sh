@@ -74,9 +74,12 @@ function clean {
 }
 
 function get_busybox {
-    image="busybox:1.35.0"
+    image="busybox:latest"
     if misses_image $image; then
-        docker pull $image
+        # getting an image that we know will work ...
+        docker pull busybox:1.35.0
+        # ... but renaming it to 'latest' because thats what sysrel requires.
+        docker image tag busybox:1.35.0 busybox:latest
     else
         echo "Already exists: $image"
     fi
@@ -316,6 +319,8 @@ function build_sysrel {
             cd javaPS
             $COMPOSE build 
     fi
+
+    cd $SCRIPT_DIR
 }
 
 function build_frontend {
@@ -335,6 +340,14 @@ function build_frontend {
     else
         if [ ! -d "dlr-riesgos-frontend" ]; then
             git clone https://github.com/riesgos/dlr-riesgos-frontend # --branch=2.0.6-main <-- once we have a stable tag
+        fi
+        sleep 1
+        if [ ! -d ./dlr-riesgos-frontend ]; then
+            echo "Weird, cannot find dlr-riesgos-frontend directory"
+            exit 1
+        elif [ ! -f .env ]; then 
+            echo "Weird, cannot find .env file"
+            exit 1
         fi
         cp .env ./dlr-riesgos-frontend
         cd ./dlr-riesgos-frontend
