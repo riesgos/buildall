@@ -16,12 +16,12 @@ services:
     env_file:
       - .env
     environment:
-      - CATALINA_OPTS=${riesgosWpsCatalinaOpts}
-      - RIESGOS_MAX_CACHE_SIZE_MB=${riesgosWpsMaxCacheSizeMb}
-      - RIESGOS_GEOSERVER_ACCESS_BASE_URL=${riesgosWpsGeoserverAccessBaseUrl}
-      - RIESGOS_GEOSERVER_SEND_BASE_URL=${riesgosWpsGeoserverSendBaseUrl}
-      - RIESGOS_GEOSERVER_USERNAME=${riesgosWpsGeoserverUsername}
-      - RIESGOS_GEOSERVER_PASSWORD=${riesgosWpsGeoserverPassword}
+      CATALINA_OPTS: ${riesgosWpsCatalinaOpts}
+      RIESGOS_MAX_CACHE_SIZE_MB: ${riesgosWpsMaxCacheSizeMb}
+      RIESGOS_GEOSERVER_ACCESS_BASE_URL: ${riesgosWpsGeoserverAccessBaseUrl}
+      RIESGOS_GEOSERVER_SEND_BASE_URL: ${riesgosWpsGeoserverSendBaseUrl}
+      RIESGOS_GEOSERVER_USERNAME: ${riesgosWpsGeoserverUsername}
+      RIESGOS_GEOSERVER_PASSWORD: ${riesgosWpsGeoserverPassword}
     volumes:
       # We need to pass the docker.sock as the WPS itself needs to run
       # docker commands
@@ -102,6 +102,18 @@ services:
       backendUrl: ${backendUrl}
       backendPort: ${backendPort}
 
+  compare-frontend:
+    image: dlrriesgos/compare-frontend
+    depends_on:
+      - backend
+    ports:
+      - 8001:80
+    environment:
+      subPath: ${compareFrontendSubPath}
+      backendUrl: ${backendUrl}
+      backendPort: ${backendPort}
+      allowedScenarios: "PeruShort"
+
   tsunawps:
     restart: always
     shm_size: '1000000000'
@@ -132,7 +144,8 @@ services:
       GEOSERVER_DATA_DIR: '/var/www/riesgos/data'
       GEOWEBCACHE_CACHE_DIR: '/var/www/riesgos/data/gwc'
       RECREATE_DATADIR: false
-
+      GEOSERVER_ADMIN_USER: ${riesgosWpsGeoserverUsername}
+      GEOSERVER_ADMIN_PASSWORD: ${riesgosWpsGeoserverPassword}
 
 
 
