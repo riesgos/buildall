@@ -312,9 +312,9 @@ function build_sysrel {
                 git clone https://github.com/52North/tum-era-critical-infrastructure-analysis
             fi
             cd tum-era-critical-infrastructure-analysis
-            docker compose build
+            $COMPOSE build
             cd javaPS
-            docker compose build 
+            $COMPOSE build 
     fi
 }
 
@@ -336,8 +336,8 @@ function build_frontend {
         if [ ! -d "dlr-riesgos-frontend" ]; then
             git clone https://github.com/riesgos/dlr-riesgos-frontend # --branch=2.0.6-main <-- once we have a stable tag
         fi
-        cd dlr-riesgos-frontend
-        cp ../.env .
+        cp .env ./dlr-riesgos-frontend
+        cd ./dlr-riesgos-frontend
         $COMPOSE build
         cd $SCRIPT_DIR
     fi
