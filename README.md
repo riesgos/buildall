@@ -8,6 +8,7 @@ The script is intended to run on a linux system with the following tools install
 - bash
 - git
 - docker
+- curl
 
 For docker it is best if docker version 2 is installed that includes `docker compose`
 as a [subcommand](https://docs.docker.com/compose/compose-file/compose-file-v2/).
