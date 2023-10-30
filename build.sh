@@ -374,6 +374,27 @@ function run_all {
     $COMPOSE --env-file .env up -d
 }
 
+function complain_if_command_is_missing {
+    toolName=$1
+    if $(which "$toolName" > /dev/null); then
+        return
+    else
+        echo "Can't find $toolName on this system."
+        exit 1
+    fi
+}
+
+function check_dependencies {
+    complain_if_command_is_missing git
+    complain_if_command_is_missing mkdir
+    complain_if_command_is_missing sed
+    complain_if_command_is_missing tar
+    complain_if_command_is_missing curl
+    # Honestly if we don't have docker, then this script will fail much
+    # earlier. Same if we don't have any version of docker compose.
+    complain_if_command_is_missing docker
+}
+
 function main {
     # Main function to dispatch to several actions.
     # Idea is to make the functions here easier to test.
@@ -383,8 +404,10 @@ function main {
     if [ -z ${1+x} ]; then
         # In case we don't have any subcommand then
         # we want to build and run all.
+        check_dependencies
         build_all
     elif [ "$1" == "all" ]; then
+        check_dependencies
         build_all
     elif [ "$1" == "run" ]; then
         run_all
@@ -397,6 +420,8 @@ function main {
         fi
     elif [ "$1" == "clean" ]; then
         clean
+    elif [ "$1" == "check" ]; then
+        check_dependencies
     elif [ "$1" == "riesgos-wps" ]; then
         build_riesgos_wps
     elif [ "$1" == "quakeledger" ]; then
