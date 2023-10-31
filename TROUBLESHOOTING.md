@@ -24,6 +24,8 @@ TypeError: fetch failed
     at async /backend/dist/scenarios/scenario.interface.js:55:44
 ```
 
+Could also be `404 Connection refused`
+
 ## Reason:
 Commonly occurs after containers have been (re-)started and riesgos-wps-init is not yet completed.
 

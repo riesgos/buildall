@@ -112,7 +112,7 @@ services:
       subPath: ${compareFrontendSubPath}
       backendUrl: ${backendUrl}
       backendPort: ${backendPort}
-      allowedScenarios: "PeruShort"
+      allowedScenarios: '["PeruShort"]'
 
   tsunawps:
     restart: always
