@@ -11,7 +11,7 @@
 
 # Docker issues
 - Some older versions of docker will not accept boolean values. We found that for the variable `RECREATE_DATADIR` the string value `"false"` - as opposed to the boolean `false` - did work.
-
+- This setup has *not* been tested with `podman`. Some containers require the ability to run docker within docker, and we don't know if podman does support this.
 
 # Fetch failed
 
