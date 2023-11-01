@@ -99,8 +99,8 @@ frontend                                                  compare-frontend
                    │   /reverse-proxy/default.conf     │                      3. So that containers can be moved outside of docker,
                    │       /geoserver ─────────────────┼────────────────┐        with proxy then pointing to new, outside server instead of towards
                    │       /wps ───────────────────────┼─────────────┐  │        container in local docker network.
-                   │       /sysrelwps ─────────┐       │             │  │                                                                    
-           ┌───────┼───────/tsunawps           │       │             │  │                                                                    
+                   │       /sysrelwps ─────────┐       │             │  │    4. The reverse proxy centralizes all CORS settings ... which can be complicated.                          
+           ┌───────┼───────/tsunawps           │       │             │  │    5. It's also useful if you only have a limited amount of ports available (80, 443, ...)
            │  ┌────┼───────/tsunaoutputs       │       │             │  │                                                                    
            │  │    │┌──────/tsunageoserver     │       │             │  │                                                                    
            │  │    └┼──────────────────────────┼───────┘             │  │                                                                    
