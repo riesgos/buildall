@@ -5,6 +5,13 @@
 - Browser: In dev-tab, make sure that HTTP-cache is deactivated.
 
 
+# Routing issues
+- If you have a domain-name, you might have to register it with  `reverse_proxy/default.conf` under `server_name`.
+- 
+
+# Docker issues
+- Some older versions of docker will not accept boolean values. We found that for the variable `RECREATE_DATADIR` the string value `"false"` - as opposed to the boolean `false` - did work.
+
 
 # Fetch failed
 
