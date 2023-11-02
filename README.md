@@ -18,7 +18,9 @@ If you have docker in version 1, you need to install `docker-compose` too.
 
 ## How to get started
 
-You can build & run all needed docker images running:
+1. Adjust the `.env` file; replace the `<host-ip-address>` with your server's ip address.
+
+2. You can build & run all needed docker images running:
 
 ```bash
 # Make sure the build.sh can be executed
@@ -29,7 +31,7 @@ chmod +x build.sh
 ./build.sh run
 ```
 
-You can then open the browser on [http://localhost:8000](http://localhost:8000).
+3. You can then open the browser on [http://localhost:8000](http://localhost:8000).
 
 ## Troubleshooting
 
