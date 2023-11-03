@@ -165,7 +165,7 @@ function build_shakyground {
             cd shakyground
             # Replace the FROM entry in the dockerfile
             # so that we use our latest shakyground-grid-file image
-            sed -i -e 's/FROM gfzriesgos\/shakyground-grid-file:20211011/FROM gfzriesgos\/shakyground-grid-file:latest/' ./metadata/Dockerfile
+            sed -i -e 's/FROM gfzriesgos\/shakyground-grid-file:.*$/FROM gfzriesgos\/shakyground-grid-file:latest/' ./metadata/Dockerfile
             docker image build --tag $image:latest --file ./metadata/Dockerfile .
             cd $SCRIPT_DIR
     else
