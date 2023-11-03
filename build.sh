@@ -69,8 +69,8 @@ function clean {
     docker image rm "52north/tum-era-critical-infrastructure-analysis-single"   || echo "Skip deleting image"
     docker image rm "52north/ades"   || echo "Skip deleting image"
     docker image rm "tsunami-wps-app01"   || echo "Skip deleting image"
-    docker volume rm buildall_logs
-    docker volume rm buildall_store
+    docker volume rm buildall_logs || echo "Skip deleting the logs volume"
+    docker volume rm buildall_store || echo "Skip deleting the store volume"
 }
 
 function get_busybox {
