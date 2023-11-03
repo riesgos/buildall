@@ -69,13 +69,11 @@ services:
 
   backend:
     image: dlrriesgos/backend
-    ports:
-      - ${backendPort}:${backendPort}
     volumes:
       - logs:/backend/data/logs
       - store:/backend/data/store
     environment:
-      port: ${backendPort}
+      port: 80
       maxStoreLifeTimeMinutes: ${maxStoreLifeTimeMinutes}
       sendMailTo: ${sendMailTo}
       sourceEmail: ${sourceEmail}
@@ -95,23 +93,17 @@ services:
     image: dlrriesgos/frontend
     depends_on:
       - backend
-    ports:
-      - 8000:80
     environment:
-      subPath: ${frontendSubPath}
+      subPath: "/frontend/"
       backendUrl: ${backendUrl}
-      backendPort: ${backendPort}
 
   compare-frontend:
     image: dlrriesgos/compare-frontend
     depends_on:
       - backend
-    ports:
-      - 8001:80
     environment:
-      subPath: ${compareFrontendSubPath}
+      subPath: "/light/"
       backendUrl: ${backendUrl}
-      backendPort: ${backendPort}
       allowedScenarios: '["PeruShort"]'
 
   tsunawps:
