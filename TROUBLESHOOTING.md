@@ -4,21 +4,26 @@
 - Browser: new tab, clear cookies, clear memory (especially cache headers).
 - Browser: In dev-tab, make sure that HTTP-cache is deactivated.
 
-
 # Routing issues
-- If you have a domain-name, you might have to register it with  `reverse_proxy/default.conf` under `server_name`.
-- 
+
+- If you have a domain-name, you might have to register it with `reverse_proxy/default.conf` under `server_name`.
+-
 
 # Docker issues
+
 - Some older versions of docker will not accept boolean values. We found that for the variable `RECREATE_DATADIR` the string value `"false"` - as opposed to the boolean `false` - did work.
-- This setup has *not* been tested with `podman`. Some containers require the ability to run docker within docker, and we don't know if podman does support this.
+- This setup has _not_ been tested with `podman`. Some containers require the ability to run docker within docker, and we don't know if podman does support this.
 - Take care that you don't have multiple versions of docker and docker-compose installed.
 
+# Env file issues:
+
+- frontend: cannot stat ../.env
+- Verify that there is a `.env` file at the root of this repository (that is, in the same directory as this `TROUBLESHOOTING.md` file) and that you have replaced all occurrences of `<your-ip-address>`.
 
 # Fetch failed
 
-
 ## Symptoms:
+
 ```
 Error: connect ECONNREFUSED 127.0.0.1:8080
 TypeError: fetch failed
@@ -36,28 +41,29 @@ TypeError: fetch failed
 Could also be `404 Connection refused`
 
 ## Reason:
+
 Commonly occurs after containers have been (re-)started and riesgos-wps-init is not yet completed.
 
 ## Solution:
+
 Wait a few seconds and try again.
 Potentially restart backend, riesgos-wps, and wps-init.
-
-
 
 # html could not be unmarshalled
 
 ## Symptoms:
 
 ```
-Element [html] could not be unmarshalled as is not known in this context and the property does not allow DOM content. 
+Element [html] could not be unmarshalled as is not known in this context and the property does not allow DOM content.
 ```
 
 - Backend: jsonix cannot unmarshal input data that it got
-    - That's because the data is not xml, but html
-    - That's likely because it didn't get a WPS'es response, but instead an error-message from nginx in html
+  - That's because the data is not xml, but html
+  - That's likely because it didn't get a WPS'es response, but instead an error-message from nginx in html
 - Nginx/RiesgosWPS: didn't respond with WPS-response, but with error message in html
 
 - Backend gets this error message just before [html] error:
+
 ```
 "type":"POST-response",
 "url":"http://10.104.136.68:80/wps/WebProcessingService?service=WPS&request=Execute&version=1.0.0&identifier=org.n52.gfz.riesgos.algorithm.impl.AssetmasterProcess",
@@ -65,6 +71,7 @@ Element [html] could not be unmarshalled as is not known in this context and the
 ```
 
 - Looking into the riesgos-wps-logs:
+
 ```
 30-Jun-2023 09:17:32.501 INFO [Catalina-utility-1] se.jiderhamn.classloader.leak.prevention.JULLogger.info Releasing web app classloader from Apache Commons Logging
 2023-06-30 09:17:32,514 [Catalina-utility-1] INFO  hsqldb.db.HSQLDB890B976FC7.ENGINE: Database closed
@@ -90,13 +97,11 @@ Element [html] could not be unmarshalled as is not known in this context and the
                 at java.lang.Thread.run(Thread.java:750)
 ```
 
+## Reason:
 
-## Reason: 
+## Solution:
 
-
-## Solution: 
 Restart buildall-riesgos-wps-1
 Potentially also restart buildall-wps-init-1
 
-
-# 
+#
