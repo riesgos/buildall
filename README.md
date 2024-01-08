@@ -153,3 +153,11 @@ frontend                                                  compare-frontend
 
 - Many containers have a `containerInit.sh` script, which is the `CMD` entrypoint to the container. - This init script is there for updating the containers configuration based on the `environment` values from the docker-compose file. - This way, you can change a containers configuration without having to rebuild it.
 - The architecture has all traffic between the user-facing containers (`frontend`, `compare-frontend` and `backend`) and the business-logic containers routed through a `reverse-proxy`. - So that backend doesn't need to know all containers' addresses - So that backend may be deployed outside of docker - So that containers can be moved outside of docker, with proxy then pointing to new, outside server instead of towards container in local docker network.
+
+## Further documentation
+
+There is additional documentation available at the repositories of the individual services. Here are a few examples (no guarantee of completeness):
+
+- https://github.com/riesgos/dlr-riesgos-frontend/blob/main/DEVELOPMENT.md
+- https://github.com/riesgos/gfz-command-line-tool-repository/blob/master/README.md
+- https://github.com/52North/javaPS/blob/develop/README.md
