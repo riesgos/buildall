@@ -28,6 +28,9 @@ For docker it is best if docker version 2 is installed that includes `docker com
 as a [subcommand](https://docs.docker.com/compose/compose-file/compose-file-v2/).
 If you have docker in version 1, you need to install `docker-compose` too.
 
+The architecture will listen for connections on port 80 on your server.
+Please make sure that either your firewall opens port 80 or redirects another port to port 80.
+
 ## Getting started
 
 1. Adjust the `.env` file; replace the `<host-ip-address>` with your server's ip address.
@@ -43,7 +46,13 @@ chmod +x build.sh
 ./build.sh run
 ```
 
-3. You can then open the browser on [http://localhost:8000](http://localhost:8000).
+3. You can then open the browser on [http://<your-host-ip>](http://<your-host-ip>).
+
+## Stopping all containers
+
+```bash
+docker compose down
+```
 
 ## Troubleshooting
 

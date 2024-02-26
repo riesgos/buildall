@@ -104,4 +104,29 @@ Element [html] could not be unmarshalled as is not known in this context and the
 Restart buildall-riesgos-wps-1
 Potentially also restart buildall-wps-init-1
 
-#
+# Port in use
+
+## Symptoms
+
+```bash
+Error response from daemon: driver failed programming external connectivity on endpoint buildall-reverse_proxy-1 (c8c37c727da3eb11e756abc84d6004b18fdd6d017408b23add7ebdd4888007b1): Error starting userland proxy: listen tcp4 0.0.0.0:80: bind: address already in use
+```
+
+## Solution
+
+This is self-explanatory: something on your machine is already blocking port 80. Do you have an apache or nginx running? Stop them.
+
+# Syntax error / Error trying to load config.prod.json
+
+## Symptoms
+
+SyntaxError: JSON.parse: unexpected character at line 1 column 1 of the JSON data
+
+## Diagnosis
+
+Somewhere, a json file cannot be delivered. Instead what the request returns is a html-page which describes a 403 error. The actual error therefore is a 403 permission problem.
+
+- Check where the error occurs:
+  - in the `frontend` container? Then go into the container and fix the file's permissions
+  - in the `reverse_proxy` container? Then change the configuration of the proxy to allow your file through
+  - neither: is there a server somewhere between you and the reverse-proxy? Maybe your institution has its own proxy that your traffic needs to go through. This proxy could block certain file-request. Talk to you admin.
