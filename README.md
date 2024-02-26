@@ -46,7 +46,7 @@ chmod +x build.sh
 ./build.sh run
 ```
 
-3. You can then open the browser on [http://<your-host-ip>](http://<your-host-ip>).
+3. You can then open the browser on [`http://<your-host-ip>`](http://<your-host-ip>).
 
 ## Stopping all containers
 
