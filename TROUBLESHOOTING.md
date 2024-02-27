@@ -20,9 +20,11 @@
 - frontend: cannot stat ../.env
 - Verify that there is a `.env` file at the root of this repository (that is, in the same directory as this `TROUBLESHOOTING.md` file) and that you have replaced all occurrences of `<your-ip-address>`.
 
-# Fetch failed
+# Upon executing service: Fetch failed / 404 / Connection refused
 
 ## Symptoms:
+
+Executing a service via the frontend results in an error message:
 
 ```
 Error: connect ECONNREFUSED 127.0.0.1:8080
@@ -42,12 +44,14 @@ Could also be `404 Connection refused`
 
 ## Reason:
 
-Commonly occurs after containers have been (re-)started and riesgos-wps-init is not yet completed.
+Sometimes when starting `riesgos-wps` you'll get a log like this:
+`riesgos-wps-1  | 2024-02-27 13:16:45,496 [main] INFO  org.n52.wps.server.database.FlatFileDatabase: Using "http://localhost:8080/wps/RetrieveResultServlet?id=" as base URL for results`
+This might be because `wps-init` didn't correctly send the wps'es external url to `riesgos-wps`.
 
-## Solution:
+If after that you manually do a `docker compose down riesgos-wps && docker compose up -d`, you'll get:
+`riesgos-wps-1  | 2024-02-27 13:16:45,496 [main] INFO  org.n52.wps.server.database.FlatFileDatabase: Using "http://10.104.136.68:80/wps/RetrieveResultServlet?id=" as base URL for results`
 
-Wait a few seconds and try again.
-Potentially restart backend, riesgos-wps, and wps-init, reverse_proxy.
+With that, the WPS should be properly configured.
 
 # html could not be unmarshalled
 
