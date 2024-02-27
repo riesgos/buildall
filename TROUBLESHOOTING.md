@@ -47,7 +47,7 @@ Commonly occurs after containers have been (re-)started and riesgos-wps-init is 
 ## Solution:
 
 Wait a few seconds and try again.
-Potentially restart backend, riesgos-wps, and wps-init.
+Potentially restart backend, riesgos-wps, and wps-init, reverse_proxy.
 
 # html could not be unmarshalled
 
@@ -130,3 +130,39 @@ Somewhere, a json file cannot be delivered. Instead what the request returns is 
   - in the `frontend` container? Then go into the container and fix the file's permissions
   - in the `reverse_proxy` container? Then change the configuration of the proxy to allow your file through
   - neither: is there a server somewhere between you and the reverse-proxy? Maybe your institution has its own proxy that your traffic needs to go through. This proxy could block certain file-request. Talk to you admin.
+
+# Out of memory error
+
+## Symptoms
+
+One or more containers immediately stop with an OOM error:
+
+```txt
+library initialization failed - unable to allocate file descriptor table - out of memory
+```
+
+## Possible fix
+
+Often times, this is due to the container trying to use more file-resources than your server allows it to.
+We have encountered that error with the service `ades`.
+If the number of files (`nofiles`) is indeed the source of the problem, then you can tell your server explicitly to allow more files for a docker container inside the `docker-compose.yml` file like so:
+
+```yml
+ades:
+  image: 52north/ades:latest
+  environment:
+    SERVICE_SERVICE_URL: ${SysrelUrl}
+    SERVICE_PROVIDER_INDIVIDUAL_NAME: Jane Doe
+    SERVICE_PROVIDER_POSITION_NAME: First Line Supporter
+    DOCKER_ENVPREFIX: TEST_
+    TEST_MY_PROPERTY: custom-value
+  # This service needs a lot of resources.
+  # Your server might not per default allow such a high nofiles,
+  # so we're setting it explicitly here.
+  ulimits:
+    nofile:
+      soft: 65536
+      hard: 65536
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+```

@@ -39,6 +39,13 @@ services:
       SERVICE_PROVIDER_POSITION_NAME: First Line Supporter
       DOCKER_ENVPREFIX: TEST_
       TEST_MY_PROPERTY: custom-value
+    # This service needs a lot of resources.
+    # Your server might not per default allow such a high nofiles,
+    # so we're setting it explicitly here.
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -88,7 +95,7 @@ services:
       SysrelUrl: ${SysrelUrl}
       SysrelEcuadorUrl: ${SysrelEcuadorUrl}
       LaharUrl: ${LaharUrl}
-  
+
   frontend:
     image: dlrriesgos/frontend
     depends_on:
@@ -108,21 +115,21 @@ services:
 
   tsunawps:
     restart: always
-    shm_size: '1000000000'
+    shm_size: "1000000000"
     image: tsunami-wps-app01
     tty: true
     volumes:
-        - './tsunami-wps/app/src:/home/ubuntu'
-        - './tsunami-wps/riesgos_tsunami_inun_data/data/inun:/inun'
-        - './tsunami-wps/app/src/static:/app/src/static'
-        - './tsunami-wps/app/src/outputs:/app/src/outputs'
+      - "./tsunami-wps/app/src:/home/ubuntu"
+      - "./tsunami-wps/riesgos_tsunami_inun_data/data/inun:/inun"
+      - "./tsunami-wps/app/src/static:/app/src/static"
+      - "./tsunami-wps/app/src/outputs:/app/src/outputs"
     environment:
-        URL: ${riesgosWpsAccessServerProtocol}://${riesgosWpsAccessServerHost}:${riesgosWpsAccessServerPort}/tsunawps
-        OUTPUTURL: ${riesgosWpsAccessServerProtocol}://${riesgosWpsAccessServerHost}:${riesgosWpsAccessServerPort}/tsunaoutputs/
-        SCENARIOWMS: ${riesgosWpsAccessServerProtocol}://${riesgosWpsAccessServerHost}:${riesgosWpsAccessServerPort}/tsunageoserver/{id}/ows?service=wms\&version=1.3.0\&request=GetCapabilities
+      URL: ${riesgosWpsAccessServerProtocol}://${riesgosWpsAccessServerHost}:${riesgosWpsAccessServerPort}/tsunawps
+      OUTPUTURL: ${riesgosWpsAccessServerProtocol}://${riesgosWpsAccessServerHost}:${riesgosWpsAccessServerPort}/tsunaoutputs/
+      SCENARIOWMS: ${riesgosWpsAccessServerProtocol}://${riesgosWpsAccessServerHost}:${riesgosWpsAccessServerPort}/tsunageoserver/{id}/ows?service=wms\&version=1.3.0\&request=GetCapabilities
     ports:
-        - '8007:80'
-            
+      - "8007:80"
+
   tsunageoserver:
     image: kartoza/geoserver
     ports:
@@ -133,15 +140,13 @@ services:
       - ./tsunami-wps/logging.xml:/var/www/riesgos/data/logging.xml
       - ./tsunami-wps/web.xml:/usr/local/tomcat/webapps/geoserver/WEB-INF/web.xml
     environment:
-      GEOSERVER_DATA_DIR: '/var/www/riesgos/data'
-      GEOWEBCACHE_CACHE_DIR: '/var/www/riesgos/data/gwc'
+      GEOSERVER_DATA_DIR: "/var/www/riesgos/data"
+      GEOWEBCACHE_CACHE_DIR: "/var/www/riesgos/data/gwc"
       RECREATE_DATADIR: "false"
       GEOSERVER_ADMIN_USER: ${riesgosWpsGeoserverUsername}
       GEOSERVER_ADMIN_PASSWORD: ${riesgosWpsGeoserverPassword}
 
-
-
 volumes:
-  logs: 
+  logs:
   store:
   tomcat-folder:
