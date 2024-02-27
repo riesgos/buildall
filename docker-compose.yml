@@ -103,6 +103,7 @@ services:
     environment:
       subPath: "/frontend/"
       backendUrl: ${backendUrl}
+      allowedScenarios: '["Peru", "Chile"]'
 
   compare-frontend:
     image: dlrriesgos/compare-frontend

@@ -55,6 +55,7 @@ chmod +x build.sh
 - `docker compose down -v`: To stop and remove all containers and remove any caches (for example if you want to delete any cache that the `backend` container may still have. Deleting this cache is a good idea, since it may point to results that no longer exist after a restart)
 
 In general, we recommend `docker compose down -v` if you want to make sure that you start from a clean slate. This will, however, mean that you'll lose any cached data.
+To also remove all images, execute `./build.sh clean`.
 
 - `docker compose up -d` or `./build.sh run`: to start all containers
 
